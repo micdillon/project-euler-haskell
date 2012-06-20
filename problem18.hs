@@ -1,19 +1,11 @@
 --
 -- problem18.hs
 --
--- strategy: suppose we know the max path for n rows, then
--- select the largest of the two choices. now, check the paths
--- that end in values of row n+1 that are larger than the 
--- one already picked. these paths are the only ones that can
--- possibly be larger than the current one.
---
 
-triangle = [[3]
-           ,[7,4]
-           ,[2,4,6] 
-           ,[3,5,9,8]]
+import Data.List
+import Debug.Trace
 
-bigTri = [[75]
+tri = [[75]
          ,[95,64]
          ,[17,47,82]
          ,[18,35,87,10]
@@ -29,33 +21,21 @@ bigTri = [[75]
          ,[63,66,04,68,89,53,67,30,73,16,69,87,40,31]
          ,[04,62,98,27,23,09,70,98,73,93,38,53,60,04,23]]
 
+acc ps rs = hlpr 0 ps rs
+  where hlpr c ps rs
+          | c == l    = [v]
+          | otherwise = v : hlpr (c+1) ps rs
+          where
+            l  = (length $ rs) - 1
+            x  = rs !! c
+            y  = if c > 0 then x + (ps !! (c-1)) else 0
+            z  = if c < l then x + (ps !! c) else 0
+            v  = if y > z then y else z
 
--- get all possible paths from the given 
--- node back to the root
-rpaths (r,c) a ts
-  | r == 0    = [a+v]
-  | otherwise = left ++ right
-  where 
-    l     = (length $ (ts !! r)) - 1
-    v     = (ts !! r) !! c
-    left  = if c > 0 then rpaths (r-1,c-1) (a+v) ts else []
-    right = if c < l then rpaths (r-1,c) (a+v) ts else []
-
-test_rpath = rpaths (4,2) 0 bigTri
-
-indicesOver v xs = hlpr 0 v xs
-  where 
-    hlpr i v [] = []
-    hlpr i v (x:xs)
-      | x > v     = i : hlpr (i+1) v xs
-      | otherwise = hlpr (i+1) v xs
-
-nextMax (r,c) ps ts
-  | null cs   = (c,v)
-  | otherwise = maximumBy () cs
-  where 
-    rs = ts !! r
-    v  = rs !! c
-    cs = map (\i -> (i, maximum $ rpaths (r,i) 0 ts)) (indicesOver v rs)
-
-ans = "doof"
+ans = maximum $ hlpr 1 (head tri) tri
+  where
+    hlpr i ps ts
+      | i == l    = acc ps (ts !! i)
+      | otherwise = hlpr (i+1) (acc ps (ts !! i)) ts
+      where
+        l = (length ts) - 1
